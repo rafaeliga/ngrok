@@ -1,38 +1,73 @@
 defmodule NgrokTest do
-  use ExUnit.Case
+  @moduledoc false
+
+  use ExUnit.Case, async: true
+
   doctest Ngrok
-  @moduletag :capture_log
-  ExUnit.Case.register_attribute __ENV__, :custom_configuration
 
-  setup context do
-    Application.stop(:ex_ngrok)
-    Application.put_env(:ex_ngrok, :api_url, context.registered.custom_configuration[:api_url])
+  setup %{test: test} do
+    # credo:disable-for-next-line Credo.Check.Warning.UnsafeToAtom
+    {:ok, ngrok_name: Module.concat(__MODULE__, test)}
   end
 
-  @custom_configuration api_url: "http://localhost:4040/api/tunnels"
-  test "it stores the settings" do
-    :ok = Application.start(:ex_ngrok)
+  test "it stores the settings", %{ngrok_name: ngrok_name} do
+    start_supervised!({Ngrok, name: ngrok_name, port: 4000})
 
-    assert Ngrok.public_url =~ ~r/http(s)?:\/\/(.*)\.ngrok\.io/
+    assert Ngrok.public_url(ngrok_name) =~ ~r/http(s)?:\/\/(.*)\.ngrok\.io/
   end
 
-  @custom_configuration api_url: "http://localhost:0"
-  test "it raises when it cannot connect to the Ngrok API" do
-    assert_application_start_error("Unable to retrieve setting from Ngrok: Could not connect to Ngrok API on http://localhost:0, reason: eaddrnotavail")
+  test "it raises when it cannot connect to the Ngrok API", %{ngrok_name: ngrok_name} do
+    assert {:error, error} =
+             start_supervised(
+               {Ngrok,
+                name: ngrok_name,
+                port: 4000,
+                api_url: "http://localhost:0",
+                sleep_between_attempts: 1}
+             )
+
+    assert {{:shutdown,
+             {:failed_to_start_child, Ngrok.Settings,
+              {%RuntimeError{
+                 message:
+                   "Unable to retrieve setting from Ngrok: Could not connect to Ngrok API on http://localhost:0, reason: econnrefused"
+               }, _}}}, _} = error
   end
 
-  @custom_configuration api_url: "http://localhost:4040/not_found"
-  test "it raises when it cannot find the Ngrok API" do
-    assert_application_start_error("Unable to retrieve setting from Ngrok: Could not find Ngrok API on http://localhost:4040/not_found, data: {\"status_code\":404,\"msg\":\"Not Found\",\"details\":{\"path\":\"/not_found\"}}\n")
+  test "it raises when it cannot find the Ngrok API", %{ngrok_name: ngrok_name} do
+    assert {:error, error} =
+             start_supervised(
+               {Ngrok,
+                name: ngrok_name,
+                port: 4000,
+                api_url: "http://localhost:4040/not_found",
+                sleep_between_attempts: 1}
+             )
+
+    assert {{:shutdown,
+             {:failed_to_start_child, Ngrok.Settings,
+              {%RuntimeError{
+                 message:
+                   "Unable to retrieve setting from Ngrok: Could not find Ngrok API on http://localhost:4040/not_found, data: {\"status_code\":404,\"msg\":\"Not Found\",\"details\":{\"path\":\"/not_found\"}}\n"
+               }, _}}}, _} = error
   end
 
-  @custom_configuration api_url: "https://github.com/"
-  test "it raises when it cannot parse the Ngrok API" do
-    assert_application_start_error("Unable to retrieve setting from Ngrok: Could not parse data from Ngrok API, data:")
-  end
+  test "it raises when it cannot parse the Ngrok API", %{ngrok_name: ngrok_name} do
+    assert {:error, error} =
+             start_supervised(
+               {Ngrok,
+                name: ngrok_name,
+                port: 4000,
+                api_url: "https://github.com/",
+                sleep_between_attempts: 1}
+             )
 
-  defp assert_application_start_error(expected_message) do
-    {:error, {{:shutdown, {:failed_to_start_child, Ngrok.Settings, {%RuntimeError{message: actual_message}, _stack_trace}}}, _info}} = Application.start(:ex_ngrok)
-    assert actual_message =~ expected_message
+    assert {{:shutdown,
+             {:failed_to_start_child, Ngrok.Settings,
+              {%RuntimeError{
+                 message:
+                   "Unable to retrieve setting from Ngrok: Could not parse data from Ngrok API, data:" <>
+                     _rest
+               }, _}}}, _} = error
   end
 end

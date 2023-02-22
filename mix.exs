@@ -1,37 +1,35 @@
 defmodule Ngrok.Mixfile do
   use Mix.Project
 
+  @version "0.3.4"
+  @source_url "https://github.com/jshmrtn/ex_ngrok"
+
   def project do
-    [app: :ex_ngrok,
-     version: "0.3.4",
-     elixir: "~> 1.7",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps(),
-     package: package(),
-     description: description()]
+    [
+      app: :ngrok,
+      version: @version,
+      elixir: "~> 1.14",
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      deps: deps(),
+      docs: docs(),
+      package: package(),
+      description: description()
+    ]
   end
 
   def application do
-    [extra_applications: [:logger],
-     env: [
-      api_url: "http://localhost:4040/api/tunnels",
-      executable: "ngrok",
-      protocol: "http",
-      port: "4000",
-      sleep_between_attempts: 200,
-      options: "",
-     ],
-     mod: {Ngrok, []}]
+    [extra_applications: [:logger]]
   end
 
   defp deps do
     [
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
-      {:credo, "~> 0.10", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
-      {:httpoison, "~> 1.4"},
-      {:poison, "~> 3.1"}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.2", only: [:dev], runtime: false},
+      {:httpoison, "~> 2.0"},
+      {:jason, "~> 1.4"},
+      {:rambo, "~> 0.3.4"}
     ]
   end
 
@@ -43,10 +41,25 @@ defmodule Ngrok.Mixfile do
     """
   end
 
+  defp docs do
+    [
+      source_url: @source_url,
+      source_ref: "v" <> @version,
+      main: "readme",
+      extras: ["README.md"]
+    ]
+  end
+
   defp package do
-    [maintainers: ["Joshua Fleck"],
-     files: ["bin/wrap", "lib", "mix.exs", "README.md", "LICENSE"],
-     licenses: ["MIT"],
-     links: %{"Github" => "https://github.com/joshuafleck/ex_ngrok"}]
+    [
+      maintainers: ["Joshua Fleck", "Jonatan Männchen"],
+      files: ["lib", "mix.exs", "README.md", "LICENSE"],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => @source_url,
+        "Changelog" => @source_url <> "/releases",
+        "Issues" => @source_url <> "/issues"
+      }
+    ]
   end
 end
