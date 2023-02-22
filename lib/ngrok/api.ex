@@ -3,7 +3,7 @@ defmodule Ngrok.Api do
 
   @type error :: {:error, String.t()}
   @type successful_validate :: {:ok, map}
-  @type successful_get :: {:ok, String.t()}
+  @type successful_get :: {:ok, term()}
 
   @spec tunnel_settings(
           api_url :: String.t(),
