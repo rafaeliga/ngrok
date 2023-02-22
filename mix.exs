@@ -1,7 +1,7 @@
 defmodule Ngrok.Mixfile do
   use Mix.Project
 
-  @version "0.3.4"
+  @version "1.0.0"
   @source_url "https://github.com/jshmrtn/ex_ngrok"
 
   def project do
