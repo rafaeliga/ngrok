@@ -30,7 +30,7 @@ defmodule NgrokTest do
              {:failed_to_start_child, Ngrok.Settings,
               {%RuntimeError{
                  message:
-                   "Unable to retrieve setting from Ngrok: Could not connect to Ngrok API on http://localhost:0, reason: econnrefused"
+                   "Unable to retrieve setting from Ngrok: Could not connect to Ngrok API on http://localhost:0, reason: :econnrefused"
                }, _}}}, _} = error
   end
 
@@ -48,7 +48,7 @@ defmodule NgrokTest do
              {:failed_to_start_child, Ngrok.Settings,
               {%RuntimeError{
                  message:
-                   "Unable to retrieve setting from Ngrok: Could not find Ngrok API on http://localhost:4040/not_found, data: {\"status_code\":404,\"msg\":\"Not Found\",\"details\":{\"path\":\"/not_found\"}}\n"
+                   "Unable to retrieve setting from Ngrok: Could not find Ngrok API on http://localhost:4040/not_found, data: %{\"details\" => %{\"path\" => \"/not_found\"}, \"msg\" => \"Not Found\", \"status_code\" => 404}"
                }, _}}}, _} = error
   end
 

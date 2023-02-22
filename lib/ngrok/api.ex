@@ -2,7 +2,7 @@ defmodule Ngrok.Api do
   @moduledoc false
 
   @type error :: {:error, String.t()}
-  @type successful_parse :: {:ok, map}
+  @type successful_validate :: {:ok, map}
   @type successful_get :: {:ok, String.t()}
 
   @spec tunnel_settings(
@@ -10,41 +10,37 @@ defmodule Ngrok.Api do
           protocol :: Ngrok.protocol(),
           port :: Ngrok.destination_port()
         ) ::
-          error | successful_parse
+          error | successful_validate
   def tunnel_settings(api_url, protocol, port) do
     with {:ok, body} <- get(api_url),
-         {:ok, parsed} <- parse(body) do
-      find_tunnel(parsed, protocol, port)
+         {:ok, validated} <- validate(body) do
+      find_tunnel(validated, protocol, port)
     end
   end
 
   @spec get(api_url :: String.t()) :: error | successful_get
   defp get(api_url) do
-    case HTTPoison.get(api_url) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+    case Req.get(api_url, retry: false) do
+      {:ok, %Req.Response{status: 200, body: body}} ->
         {:ok, body}
 
-      {:ok, %HTTPoison.Response{status_code: _, body: body}} ->
-        {:error, "Could not find Ngrok API on #{api_url}, data: #{body}"}
+      {:ok, %Req.Response{status: _, body: body}} ->
+        {:error, "Could not find Ngrok API on #{api_url}, data: #{inspect(body)}"}
 
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        {:error, "Could not connect to Ngrok API on #{api_url}, reason: #{reason}"}
+      {:error, %Mint.TransportError{reason: reason}} ->
+        {:error, "Could not connect to Ngrok API on #{api_url}, reason: #{inspect(reason)}"}
     end
   end
 
-  @spec parse(String.t()) :: error | successful_parse
-  defp parse(body) do
-    case Jason.decode(body) do
-      {:ok, parsed} ->
-        {:ok, parsed}
+  @spec validate(term()) :: error | successful_validate
+  defp validate(body)
+  defp validate(%{"tunnels" => _tunnels} = validated), do: {:ok, validated}
 
-      _error ->
-        {:error, "Could not parse data from Ngrok API, data: #{body}"}
-    end
-  end
+  defp validate(other),
+    do: {:error, "Could not parse data from Ngrok API, data: #{inspect(other)}"}
 
   @spec find_tunnel(map, protocol :: Ngrok.protocol(), port :: Ngrok.destination_port()) ::
-          error | successful_parse
+          error | successful_validate
   defp find_tunnel(parsed, protocol, port) do
     tunnels = Map.fetch!(parsed, "tunnels")
 
