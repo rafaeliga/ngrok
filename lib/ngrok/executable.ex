@@ -40,8 +40,8 @@ defmodule Ngrok.Executable do
   end
 
   @spec log({target :: :stdout | :stderr, message :: String.t()}) :: :ok
-  defp log({:stdout, message}), do: Logger.warn("#{__MODULE__} #{message}")
-  defp log({:stderr, message}), do: Logger.warn("#{__MODULE__} #{message}")
+  defp log({:stdout, message}), do: Logger.warning("#{__MODULE__} #{message}")
+  defp log({:stderr, message}), do: Logger.warning("#{__MODULE__} #{message}")
 
   @spec protocol_to_cmd(protocol :: Ngrok.protocol()) :: String.t()
   defp protocol_to_cmd(protocol)
