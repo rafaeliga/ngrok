@@ -27,8 +27,8 @@ defmodule Ngrok.Api do
       {:ok, %Req.Response{status: _, body: body}} ->
         {:error, "Could not find Ngrok API on #{api_url}, data: #{inspect(body)}"}
 
-      {:error, %Mint.TransportError{reason: reason}} ->
-        {:error, "Could not connect to Ngrok API on #{api_url}, reason: #{inspect(reason)}"}
+      {:error, ex} ->
+        {:error, "Could not connect to Ngrok API on #{api_url}, reason: #{Exception.message(ex)}"}
     end
   end
 

@@ -13,7 +13,7 @@ defmodule NgrokTest do
   test "it stores the settings", %{ngrok_name: ngrok_name} do
     start_supervised!({Ngrok, name: ngrok_name, port: 4000})
 
-    assert Ngrok.public_url(ngrok_name) =~ ~r/http(s)?:\/\/(.*)\.ngrok\.io/
+    assert Ngrok.public_url(ngrok_name) =~ ~r/http(s)?:\/\/(.*)(\.ngrok\.io|\.ngrok-free\.app)/
   end
 
   test "it raises when it cannot connect to the Ngrok API", %{ngrok_name: ngrok_name} do
@@ -30,7 +30,7 @@ defmodule NgrokTest do
              {:failed_to_start_child, Ngrok.Settings,
               {%RuntimeError{
                  message:
-                   "Unable to retrieve setting from Ngrok: Could not connect to Ngrok API on http://localhost:0, reason: :econnrefused"
+                   "Unable to retrieve setting from Ngrok: Could not connect to Ngrok API on http://localhost:0, reason: connection refused"
                }, _}}}, _} = error
   end
 

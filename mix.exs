@@ -28,7 +28,7 @@ defmodule Ngrok.Mixfile do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.2", only: [:dev], runtime: false},
       {:rambo, "~> 0.3.4"},
-      {:req, "~> 0.3.5"}
+      {:req, "~> 0.5"}
     ]
   end
 
